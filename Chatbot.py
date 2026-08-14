@@ -1,4 +1,4 @@
-from langgraph.graph import START, END, StateGraph
+from langgraph.graph import START, END, StateGraph, MessagesState
 from langchain_openrouter import ChatOpenRouter
 from typing import TypedDict, Annotated
 from langgraph.checkpoint.memory import InMemorySaver
@@ -11,16 +11,16 @@ load_dotenv()
 llm = ChatOpenRouter(
     model="gpt-4o-mini"
 )
+# this is user defined state for chatbot, but we can use built-in state like MessagesSate from langgraph which recently introduced by langgraph.
+# class ChatbotState(TypedDict):
+#     messages: Annotated[list[BaseMessage], add_messages]
 
-class ChatbotState(TypedDict):
-    messages: Annotated[list[BaseMessage], add_messages]
-
-def ChatbotNode(state: ChatbotState) -> ChatbotState:
+def ChatbotNode(state: MessagesState) -> MessagesState:
     result = llm.invoke(state["messages"])
     return {'messages': [result]}
 
 
-graph = StateGraph(ChatbotState)
+graph = StateGraph(MessagesState)
 graph.add_node('ChatbotNode', ChatbotNode)
 graph.add_edge(START, 'ChatbotNode')
 graph.add_edge('ChatbotNode', END)
